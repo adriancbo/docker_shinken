@@ -25,15 +25,15 @@ RUN         useradd --create-home shinken && \
 # Install shinken modules from shinken.io
 RUN         chown -R shinken:shinken /etc/shinken/ && \
                 su - shinken -c 'shinken --init' && \
-                su - shinken -c 'shinken install webui' && \
+                su - shinken -c 'shinken install webui2' && \
                 su - shinken -c 'shinken install auth-htpasswd' && \
                 su - shinken -c 'shinken install sqlitedb' && \
                 su - shinken -c 'shinken install pickle-retention-file-scheduler' && \
                 su - shinken -c 'shinken install booster-nrpe' && \
                 su - shinken -c 'shinken install logstore-sqlite' && \
                 su - shinken -c 'shinken install livestatus' && \
-                su - shinken -c 'shinken install graphite' && \
-                su - shinken -c 'shinken install ui-graphite'
+                su - shinken -c 'shinken install graphite2' && \
+                su - shinken -c 'shinken install ui-graphite2'
 
 # Install Graphite
 RUN         pip install Twisted==11.1.0 && \
@@ -44,7 +44,11 @@ RUN         pip install Twisted==11.1.0 && \
                 pip install whisper==0.9.12 && \
                 pip install carbon==0.9.12 && \
                 pip install graphite-web==0.9.12 && \
-                pip install gunicorn==19.1.1
+                pip install gunicorn==19.1.1 && \
+                pip install pymongo>=3.0.3 && \
+                pip install requests && \
+                pip install bottle==0.12.8 && \
+                pip install arrow
 
 # Install and configure thruk
 RUN         gpg --keyserver keys.gnupg.net --recv-keys F8C1CA08A57B9ED7 && \
@@ -74,10 +78,10 @@ ADD         shinken/shinken.cfg /etc/shinken/shinken.cfg
 ADD         shinken/broker-master.cfg /etc/shinken/brokers/broker-master.cfg
 ADD         shinken/poller-master.cfg /etc/shinken/pollers/poller-master.cfg
 ADD         shinken/scheduler-master.cfg /etc/shinken/schedulers/scheduler-master.cfg
-ADD         shinken/webui.cfg /etc/shinken/modules/webui.cfg
+ADD         shinken/webui2.cfg /etc/shinken/modules/webui2.cfg
 ADD         shinken/livestatus.cfg /etc/shinken/modules/livestatus.cfg
-ADD         shinken/graphite.cfg /etc/shinken/modules/graphite.cfg
-ADD         shinken/ui-graphite.cfg /etc/shinken/modules/ui-graphite.cfg
+ADD         shinken/graphite2.cfg /etc/shinken/modules/graphite2.cfg
+ADD         shinken/ui-graphite2.cfg /etc/shinken/modules/ui-graphite2.cfg
 RUN         mkdir -p /etc/shinken/custom_configs /usr/local/custom_plugins && \
                 ln -sf /etc/shinken/custom_configs/htpasswd.users /etc/shinken/htpasswd.users && \
                 rm -f /etc/thruk/htpasswd && \
@@ -104,7 +108,7 @@ RUN         cd /usr/lib/nagios/plugins/ && \
                 chmod u+s check_apt restart_service check_ping check_icmp check_fping apt_update
 
 # Define mountable directories
-VOLUME      ["/etc/shinken/custom_configs", "/usr/local/custom_plugins"]
+VOLUME      ["/etc/shinken/custom_configs", "/usr/local/custom_plugins", "/var/log/shinken"]
 
 # configure supervisor
 ADD         supervisor/conf.d/* /etc/supervisor/conf.d/
